@@ -9,14 +9,17 @@ import com.rabbitmq.client.ConnectionFactory;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.mongo.MongoProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.env.Environment;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisClientConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
@@ -33,6 +36,18 @@ public class BeansConfig {
 
     @Resource
     private Environment env;
+
+    @Value("${spring.redis.host}")
+    private String redisHost;
+
+    @Value("${spring.redis.port}")
+    private int redisPort;
+
+    @Value("${spring.redis.portCache}")
+    private int redisCachePort;
+
+    @Value("${spring.redis.pub}")
+    private String channelPub;
 
     @Bean
     public ConnectionFactory customConnectionFactory() {
@@ -63,33 +78,22 @@ public class BeansConfig {
     }
 
     @Bean
-    public JedisConnectionFactory jedisConnectionFactory() {
-        RedisStandaloneConfiguration rsc = new RedisStandaloneConfiguration();
-
-        JedisClientConfiguration cf = JedisClientConfiguration.builder().readTimeout(Duration.ofSeconds(0)).connectTimeout(Duration.ofSeconds(0)).build();
-
-        rsc.setHostName(env.getProperty("spring.redis.host"));
-        rsc.setPort(Integer.valueOf(env.getProperty("spring.redis.port")));
-
-        return new JedisConnectionFactory(rsc, cf);
+    @Primary
+    public LettuceConnectionFactory lettuceConnectionFactory() {
+        RedisStandaloneConfiguration redisConfig = new RedisStandaloneConfiguration(redisHost, redisPort);
+        return new LettuceConnectionFactory(redisConfig);
     }
 
     @Bean
-    public JedisConnectionFactory jedisCacheConnectionFactory() {
-        RedisStandaloneConfiguration rsc = new RedisStandaloneConfiguration();
-
-        JedisClientConfiguration cf = JedisClientConfiguration.builder().readTimeout(Duration.ofSeconds(0)).connectTimeout(Duration.ofSeconds(0)).build();
-
-        rsc.setHostName(env.getProperty("spring.redis.host"));
-        rsc.setPort(Integer.valueOf(env.getProperty("spring.redis.portCache")));
-
-        return new JedisConnectionFactory(rsc, cf);
+    public LettuceConnectionFactory lettuceCacheConnectionFactory() {
+        RedisStandaloneConfiguration redisConfig = new RedisStandaloneConfiguration(redisHost, redisCachePort);
+        return new LettuceConnectionFactory(redisConfig);
     }
 
     @Bean
     public RedisTemplate<String, FilaRedis> redisTemplate() {
         RedisTemplate<String, FilaRedis> template = new RedisTemplate<>();
-        template.setConnectionFactory(jedisConnectionFactory());
+        template.setConnectionFactory(lettuceConnectionFactory());
         template.setKeySerializer(new StringRedisSerializer());
         template.setDefaultSerializer(new StringRedisSerializer());
         template.setValueSerializer(new Jackson2JsonRedisSerializer<FilaRedis>(FilaRedis.class));
@@ -99,7 +103,7 @@ public class BeansConfig {
     @Bean
     public RedisTemplate<String, Object> redisCacheTemplate() {
         RedisTemplate<String, Object> template = new RedisTemplate<>();
-        template.setConnectionFactory(jedisCacheConnectionFactory());
+        template.setConnectionFactory(lettuceCacheConnectionFactory());
         template.setKeySerializer(new StringRedisSerializer());
         template.setDefaultSerializer(new StringRedisSerializer());
         template.setValueSerializer(new JsonRedisSerializer());
@@ -108,6 +112,6 @@ public class BeansConfig {
 
     @Bean
     ChannelTopic topic() {
-        return new ChannelTopic(env.getProperty("spring.redis.pub"));
+        return new ChannelTopic(channelPub);
     }
 }
