@@ -15,7 +15,7 @@ Componentes Utilizados:
 
 Descrição:
 
-> Projeto worker para consumo de fila RabbitMQ, pesistência em banco MYSql, MongoDB e Redis, e RESTful para consulto de dados completos e filtrados.
+> Projeto worker para consumo de fila RabbitMQ, pesistência em banco MySQL, MongoDB e Redis, e RESTful para consulto de dados completos e filtrados.
 > O projeto tem como objetivo entender como funciona o consumo de filas e persistência em diversos tipos de bancos de forma simples, ele recebe dados pré estabelecidos de carros e realiza a persistência nos bancos.
 > Conseguimos também através do protocolo REST consultar todos os carros salvos e buscar por chassi.
 > Na raiz do projeto possui o arquivo workerDB.sql para criação do banco e o arquivo exemplosFila.json para adicionar dados fictícios na fila RabbitMQ para consumo.
