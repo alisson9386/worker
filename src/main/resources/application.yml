@@ -1,0 +1,37 @@
+server:
+  port: 8081
+logging:
+  level:
+    root: INFO
+  file:
+    name: /var/log/spring/worker.log
+spring:
+  datasource:
+    jdbcUrl: jdbc:mysql://localhost:3306/worker
+    username: root
+    password:
+    driverClassName: com.mysql.cj.jdbc.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: admin
+    password: admin
+    queue: worker.process
+    listener:
+      simple:
+        prefetch: 10
+        acknowledge-mode: MANUAL
+  redis:
+    host: localhost
+    port: 6389
+    portCache: 6379
+    pub: pub
+    password:
+  data:
+    mongodb:
+      uri: mongodb://localhost/worker
+      port: 27017
+      host: localhost
+      database: worker
