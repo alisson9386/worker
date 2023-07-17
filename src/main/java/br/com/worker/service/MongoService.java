@@ -1,5 +1,6 @@
 package br.com.worker.service;
 
+import br.com.worker.domain.Car;
 import br.com.worker.repository.MongoRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,5 +20,9 @@ public class MongoService {
     @Autowired
     public MongoService(MongoRepository mongoRepository) {
         this.mongoRepository = mongoRepository;
+    }
+
+    public void setCarMongo(Car car){
+        mongoRepository.setMongoDatabase(car);
     }
 }
